@@ -1,9 +1,9 @@
 # AWS 를 이용한 Terraform Example
 * 사전준비사항  
-: AWS IAM 계정이 있어야 한다.
-: EC2 의 key pair 가 있어야 한다.
-: Local PC 에 ~/.ssh 에 key pair pem 파일이 있어야 한다.
-: Local PC 에 Terraform 이 설치되어 있어야 한다.
+: AWS IAM 계정이 있어야 한다.  
+: EC2 의 key pair 가 있어야 한다.  
+: Local PC 에 ~/.ssh 에 key pair pem 파일이 있어야 한다.  
+: Local PC 에 Terraform 이 설치되어 있어야 한다.  
 
 ## Terraform 기본 사용법
 ```
