@@ -159,17 +159,6 @@ resource "aws_security_group" "security-group" {
       self = false
     },
     {
-      description      = "NESTJS"
-      from_port        = 3000
-      to_port          = 3000
-      protocol         = "tcp"
-      cidr_blocks      = ["0.0.0.0/0"]
-      ipv6_cidr_blocks = ["::/0"]
-      prefix_list_ids  = []
-      security_groups  = []
-      self = false
-    },
-    {
       description      = "SSH from home"
       from_port        = 22
       to_port          = 22

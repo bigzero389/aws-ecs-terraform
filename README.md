@@ -25,11 +25,46 @@ terraform destroy [--auto-approve]
 * VPC 를 구성하고 EC2 를 한대 만든다.
 * destroy 하면 VPC 및 EC2 등 모든 자원이 삭제된다.
 
+* 아래 "svc_nm"과 "pem_file" 을 적절한 값으로 변경한다.
+```
+ ...
+ 12 locals {
+ 13   ## 신규 VPC 를 구성하는 경우 svc_nm 과 pem_file 를 새로 넣어야 한다.
+ 14   svc_nm = "dyheo"
+ 15   pem_file = "dyheo-histech-2"
+ ...
+```
+* 아래 cidr_blocks 에 본인이 ssh 로 접속할 공인IP 로 변경한다.
+```
+161     {
+162       description      = "SSH from home"
+163       from_port        = 22
+164       to_port          = 22
+165       protocol         = "tcp"
+166       type             = "ssh"
+167       cidr_blocks      = ["125.177.68.23/32", "211.206.114.80/32"]
+168       ipv6_cidr_blocks = ["::/0"]
+169       prefix_list_ids  = []
+170       security_groups  = []
+171       self = false
+172     }
+
+```
+
 ### vpc
 * VPC 환경만 구성한다.
 * 기본적인 네트워크 환경들도 구성한다. 즉, all 에서 EC2 만 제외하고 구성된다.
 * destroy 하면 VPC 가 전체 삭제된다. 이때 vpc terraform 으로 만들어지지 않은 다른 자원들이 종속되어 있으면 삭제가 안된다.
+* 위에 all 에서 변경해야 되는 부분들을 변경하고 실행한다.
 
 ### ec2
 * 지정된 tag 이름으로 만들어진 VPC 정보에 기반하여 EC2 만 생성한다. 
 * destroy 하면 해당 EC2 를 삭제한다.
+
+* 아래 부분을 자기 환경에 맞는 값으로 수정해서 실행한다.
+```
+ 7 locals {
+  8   svc_nm = "dyheo"
+  9   pem_file = "dyheo-histech-2"
+```
+[terraform example reference](https://github.com/largezero/ecs-with-codepipeline-example-by-terraform).  
