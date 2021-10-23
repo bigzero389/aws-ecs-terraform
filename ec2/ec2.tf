@@ -6,7 +6,7 @@ provider "aws" {
 
 locals {
   svc_nm = "dyheo"
-  pem_file = "dyheo-histech-2"
+  pem_file = "dyheo-histech"
 
   ## EC2 를 만들기 위한 로컬변수 선언
   ami = "ami-0e4a9ad2eb120e054" ## AMAZON LINUX 2
@@ -38,7 +38,7 @@ data "aws_subnet" "public" {
 }
 
 # AWS EC2
-resource "aws_instance" "dyheo-tf-ec2-01" {
+resource "aws_instance" "dyheo-ec2-01" {
   ami = "${local.ami}"
   #associate_public_ip_address = true
   instance_type = "${local.instance_type}"
@@ -46,10 +46,10 @@ resource "aws_instance" "dyheo-tf-ec2-01" {
   vpc_security_group_ids = ["${data.aws_security_group.security-group.id}"]
   subnet_id = "${data.aws_subnet.public.id}"
   tags = {
-    Name = "dyheo-tf-ec2"
+    Name = "dyheo-ec2-01"
   }
 
-# HelloWorld App Code
+# EC2 preconfig
   provisioner "remote-exec" {
     connection {
       host = self.public_ip
@@ -73,6 +73,6 @@ resource "aws_instance" "dyheo-tf-ec2-01" {
 
 ## EC2 를 만들면 public ip 를 print 해준다.
 output "instance-public-ip" {
-  value = "${aws_instance.dyheo-tf-ec2-01.public_ip}"
+  value = "${aws_instance.dyheo-ec2-01.public_ip}"
 }
 
