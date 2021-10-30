@@ -6,6 +6,9 @@ provider "aws" {
 
 locals {
   svc_nm = "dyheo"
+  creator = "dyheo"
+  group = "dyheo-dev"
+
   pem_file = "dyheo-histech"
 
   ## EC2 를 만들기 위한 로컬변수 선언
@@ -23,6 +26,7 @@ data "aws_vpc" "this" {
 
 ## TAG NAME 으로 security group 을 가져온다.
 data "aws_security_group" "security-group" {
+  vpc_id = "${data.aws_vpc.this.id}"
   filter {
     name = "tag:Name"
     values = ["${local.svc_nm}-sg"]
@@ -30,38 +34,50 @@ data "aws_security_group" "security-group" {
 }
 
 ## TAG NAME 으로 subnet 을 가져온다.
-data "aws_subnet" "public" {
+data "aws_subnet_ids" "public" {
+  vpc_id = "${data.aws_vpc.this.id}"
   filter {
     name = "tag:Name"
-    values = ["${local.svc_nm}-sb-public"]
+    values = ["${local.svc_nm}-sb-public-*"]
   }
 }
 
+data "aws_subnet" "public" {
+  for_each = data.aws_subnet_ids.public.ids
+  id = each.value
+}
+
 # AWS EC2
-resource "aws_instance" "dyheo-ec2-01" {
+resource "aws_instance" "dyheo-ec2" {
+  count = length(data.aws_subnet_ids.public.ids)
   ami = "${local.ami}"
   #associate_public_ip_address = true
   instance_type = "${local.instance_type}"
   key_name = "${local.pem_file}"
   vpc_security_group_ids = ["${data.aws_security_group.security-group.id}"]
-  subnet_id = "${data.aws_subnet.public.id}"
+
+  #subnet_id = "${data.aws_subnet.public.id}"
+  subnet_id = element(tolist(data.aws_subnet_ids.public.ids), count.index)
+
   tags = {
-    Name = "dyheo-ec2-01"
+    Name = "dyheo-ec2-${count.index + 1}",
+    Creator = "${local.creator}"
+    Group = "${local.group}"
   }
 
 # EC2 preconfig
-  provisioner "remote-exec" {
-    connection {
-      host = self.public_ip
-      user = "ec2-user"
-      private_key = "${file("~/.ssh/${local.pem_file}.pem")}"
-    }
-    inline = [
-      "echo 'repository set'",
-      "sudo yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm -y",
-      "sudo yum update -y"
-    ]
-  }
+#  provisioner "remote-exec" {
+#    connection {
+#      host = self.public_ip
+#      user = "ec2-user"
+#      private_key = "${file("~/.ssh/${local.pem_file}.pem")}"
+#    }
+#    inline = [
+#      "echo 'repository set'",
+#      "sudo yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm -y",
+#      "sudo yum update -y"
+#    ]
+#  }
   ## ANSIBLE playbook 을 삽입하는 경우 여기를 수정한다.
 #  provisioner "local-exec" {
 #    command = "echo '[inventory] \n${self.public_ip}' > ./inventory"
@@ -73,6 +89,6 @@ resource "aws_instance" "dyheo-ec2-01" {
 
 ## EC2 를 만들면 public ip 를 print 해준다.
 output "instance-public-ip" {
-  value = "${aws_instance.dyheo-ec2-01.public_ip}"
+  value = "${aws_instance.dyheo-ec2.*.public_ip}"
 }
 

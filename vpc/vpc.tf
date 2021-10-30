@@ -12,18 +12,26 @@ variable "region" {
 locals {
   ## 신규 VPC 를 구성하는 경우 svc_nm 과 pem_file 를 새로 넣어야 한다.
   svc_nm = "dyheo"
+  creator = "dyheo"
+  group = "dyheo-dev"
+
   pem_file = "dyheo-histech-2"
 
   ## 신규 구축하는 시스템의 cidr 를 지정한다. 
   public_subnets = {
     "${var.region}a" = "10.55.101.0/24"
 #    "${var.region}b" = "10.55.102.0/24"
-#    "${var.region}c" = "10.55.103.0/24"
+    "${var.region}c" = "10.55.103.0/24"
   }
   private_subnets = {
     "${var.region}a" = "10.55.111.0/24"
 #    "${var.region}b" = "10.55.112.0/24"
-#    "${var.region}c" = "10.55.113.0/24"
+    "${var.region}c" = "10.55.113.0/24"
+  }
+  azs = {
+    "${var.region}a" = "a"
+#    "${var.region}b" = "b"
+    "${var.region}c" = "c"
   }
 }
 
@@ -35,7 +43,9 @@ resource "aws_vpc" "this" {
   enable_dns_hostnames = true
 
   tags = {
-    Name = "${local.svc_nm}-vpc"
+    Name = "${local.svc_nm}-vpc",
+    Creator= "${local.creator}",
+    Group = "${local.group}"
   }
 }
 
@@ -43,7 +53,9 @@ resource "aws_internet_gateway" "this" {
   vpc_id = "${aws_vpc.this.id}"
 
   tags = {
-    Name = "${local.svc_nm}-igw"
+    Name = "${local.svc_nm}-igw",
+    Creator= "${local.creator}",
+    Group = "${local.group}"
   }
 }
 
@@ -56,7 +68,9 @@ resource "aws_subnet" "public" {
   availability_zone       = "${element(keys(local.public_subnets), count.index)}"
 
   tags = {
-    Name = "${local.svc_nm}-sb-public"
+    Name = "${local.svc_nm}-sb-public-${element(values(local.azs), count.index)}",
+    Creator= "${local.creator}",
+    Group = "${local.group}"
   }
 }
 
@@ -69,7 +83,9 @@ resource "aws_subnet" "private" {
   availability_zone       = "${element(keys(local.private_subnets), count.index)}"
 
   tags = {
-    Name = "${local.svc_nm}-sb-private"
+    Name = "${local.svc_nm}-sb-private-${element(values(local.azs), count.index)}",
+    Creator= "${local.creator}",
+    Group = "${local.group}"
   }
 }
 
@@ -77,7 +93,9 @@ resource "aws_default_route_table" "public" {
   default_route_table_id = "${aws_vpc.this.main_route_table_id}"
 
   tags = {
-    Name = "${local.svc_nm}-public"
+    Name = "${local.svc_nm}-public",
+    Creator= "${local.creator}",
+    Group = "${local.group}"
   }
 }
 
@@ -102,7 +120,9 @@ resource "aws_route_table" "private" {
   vpc_id = "${aws_vpc.this.id}"
 
   tags = {
-    Name = "${local.svc_nm}-private"
+    Name = "${local.svc_nm}-private",
+    Creator= "${local.creator}",
+    Group = "${local.group}"
   }
 }
 
@@ -116,7 +136,9 @@ resource "aws_eip" "nat" {
   vpc = true
 
   tags = {
-    Name = "${local.svc_nm}-eip"
+    Name = "${local.svc_nm}-eip",
+    Creator= "${local.creator}",
+    Group = "${local.group}"
   }
 }
 
@@ -125,7 +147,9 @@ resource "aws_nat_gateway" "this" {
   subnet_id     = "${aws_subnet.public.0.id}"
 
   tags = {
-    Name = "${local.svc_nm}-nat-gw"
+    Name = "${local.svc_nm}-nat-gw",
+    Creator= "${local.creator}",
+    Group = "${local.group}"
   }
 }
 
@@ -142,13 +166,13 @@ resource "aws_route" "private_nat_gateway" {
 
 # AWS Security Group
 resource "aws_security_group" "security-group" {
-  name        = "monolithi-sg"
+  name        = "dyheo-dev-sg"
   description = "dyheo terraform security group"
   vpc_id      = "${aws_vpc.this.id}"
 
   ingress = [
     {
-      description      = "HTTP"
+      description      = "HTTP open"
       from_port        = 80
       to_port          = 80
       protocol         = "tcp"
@@ -159,7 +183,7 @@ resource "aws_security_group" "security-group" {
       self = false
     },
     {
-      description      = "NESTJS"
+      description      = "node open"
       from_port        = 3000
       to_port          = 3000
       protocol         = "tcp"
@@ -170,11 +194,22 @@ resource "aws_security_group" "security-group" {
       self = false
     },
     {
-      description      = "SSH from home"
+      description      = "SSH open"
       from_port        = 22
       to_port          = 22
       protocol         = "tcp"
       type             = "ssh"
+      cidr_blocks      = ["125.177.68.23/32", "211.206.114.80/32"]
+      ipv6_cidr_blocks = ["::/0"]
+      prefix_list_ids  = []
+      security_groups  = []
+      self = false
+    },
+    {
+      description      = "mysql open"
+      from_port        = 3306
+      to_port          = 3306
+      protocol         = "tcp"
       cidr_blocks      = ["125.177.68.23/32", "211.206.114.80/32"]
       ipv6_cidr_blocks = ["::/0"]
       prefix_list_ids  = []
@@ -198,7 +233,9 @@ resource "aws_security_group" "security-group" {
   ]
 
   tags = {
-    Name = "${local.svc_nm}-sg"
+    Name = "${local.svc_nm}-sg",
+    Creator= "${local.creator}",
+    Group = "${local.group}"
   }
 }
 
