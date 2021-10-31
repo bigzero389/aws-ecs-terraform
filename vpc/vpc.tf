@@ -176,7 +176,20 @@ resource "aws_security_group" "security-group" {
       from_port        = 80
       to_port          = 80
       protocol         = "tcp"
-      cidr_blocks      = ["0.0.0.0/0"]
+      #cidr_blocks      = ["0.0.0.0/0"]
+      cidr_blocks      = ["125.177.68.23/32", "211.206.114.80/32", "10.55.0.0/16"]
+      ipv6_cidr_blocks = ["::/0"]
+      prefix_list_ids  = []
+      security_groups  = []
+      self = false
+    },
+    {
+      description      = "HTTPS open"
+      from_port        = 443
+      to_port          = 443
+      protocol         = "tcp"
+      #cidr_blocks      = ["0.0.0.0/0"]
+      cidr_blocks      = ["125.177.68.23/32", "211.206.114.80/32", "10.55.0.0/16"]
       ipv6_cidr_blocks = ["::/0"]
       prefix_list_ids  = []
       security_groups  = []
@@ -187,7 +200,7 @@ resource "aws_security_group" "security-group" {
       from_port        = 3000
       to_port          = 3000
       protocol         = "tcp"
-      cidr_blocks      = ["0.0.0.0/0"]
+      cidr_blocks      = ["125.177.68.23/32", "211.206.114.80/32", "10.55.0.0/16"]
       ipv6_cidr_blocks = ["::/0"]
       prefix_list_ids  = []
       security_groups  = []
@@ -206,11 +219,23 @@ resource "aws_security_group" "security-group" {
       self = false
     },
     {
+      description      = "tomcat open in private"
+      from_port        = 8080
+      to_port          = 8080
+      protocol         = "tcp"
+      cidr_blocks      = ["125.177.68.23/32", "211.206.114.80/32", "10.55.0.0/16"]
+      ipv6_cidr_blocks = ["::/0"]
+      prefix_list_ids  = []
+      security_groups  = []
+      self = false
+    },
+
+    {
       description      = "mysql open"
       from_port        = 3306
       to_port          = 3306
       protocol         = "tcp"
-      cidr_blocks      = ["125.177.68.23/32", "211.206.114.80/32"]
+      cidr_blocks      = ["125.177.68.23/32", "211.206.114.80/32", "10.55.0.0/16"]
       ipv6_cidr_blocks = ["::/0"]
       prefix_list_ids  = []
       security_groups  = []

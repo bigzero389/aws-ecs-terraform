@@ -60,7 +60,7 @@ resource "aws_instance" "dyheo-ec2" {
   subnet_id = element(tolist(data.aws_subnet_ids.public.ids), count.index)
 
   tags = {
-    Name = "dyheo-ec2-${count.index + 1}",
+    Name = "${local.svc_nm}-ec2-${count.index + 1}",
     Creator = "${local.creator}"
     Group = "${local.group}"
   }
