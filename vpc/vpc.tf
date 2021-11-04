@@ -13,9 +13,9 @@ locals {
   ## 신규 VPC 를 구성하는 경우 svc_nm 과 pem_file 를 새로 넣어야 한다.
   svc_nm = "dyheo"
   creator = "dyheo"
-  group = "dyheo-dev"
+  group = "t-dyheo"
 
-  pem_file = "dyheo-histech-2"
+  pem_file = "dyheo-histech"
 
   ## 신규 구축하는 시스템의 cidr 를 지정한다. 
   public_subnets = {
@@ -166,8 +166,8 @@ resource "aws_route" "private_nat_gateway" {
 
 # AWS Security Group
 resource "aws_security_group" "security-group" {
-  name        = "dyheo-dev-sg"
-  description = "dyheo terraform security group"
+  name        = "${local.svc_nm}-sg"
+  description = "${local.svc_nm} security group"
   vpc_id      = "${aws_vpc.this.id}"
 
   ingress = [
@@ -222,18 +222,6 @@ resource "aws_security_group" "security-group" {
       description      = "tomcat open in private"
       from_port        = 8080
       to_port          = 8080
-      protocol         = "tcp"
-      cidr_blocks      = ["125.177.68.23/32", "211.206.114.80/32", "10.55.0.0/16"]
-      ipv6_cidr_blocks = ["::/0"]
-      prefix_list_ids  = []
-      security_groups  = []
-      self = false
-    },
-
-    {
-      description      = "mysql open"
-      from_port        = 3306
-      to_port          = 3306
       protocol         = "tcp"
       cidr_blocks      = ["125.177.68.23/32", "211.206.114.80/32", "10.55.0.0/16"]
       ipv6_cidr_blocks = ["::/0"]
