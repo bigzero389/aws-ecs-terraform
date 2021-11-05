@@ -7,7 +7,7 @@ provider "aws" {
 locals {
   svc_nm = "dyheo"
   creator = "dyheo"
-  group = "dyheo-dev"
+  group = "t-dyheo"
 
   pem_file = "dyheo-histech"
 

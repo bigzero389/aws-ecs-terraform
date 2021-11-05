@@ -8,7 +8,7 @@ provider "aws" {
 locals {
   svc_nm = "dyheo"
   creator = "dyheo"
-  group = "dyheo-dev"
+  group = "t-dyheo"
 
   pem_file = "dyheo-histech"
 
@@ -69,6 +69,7 @@ resource "aws_alb" "public" {
   security_groups    = [data.aws_security_group.security-group.id]
   subnets            = data.aws_subnet_ids.public.ids
 
+  ## 임의로 삭제 가능여부 
   #enable_deletion_protection = true
   enable_deletion_protection = false
 
