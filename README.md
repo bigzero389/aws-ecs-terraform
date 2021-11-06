@@ -68,3 +68,10 @@ terraform destroy [--auto-approve]
   9   pem_file = "dyheo-histech-2"
 ```
 [terraform example reference](https://github.com/largezero/ecs-with-codepipeline-example-by-terraform).  
+* aws cli 를 이용하여 ami list 가져오기
+```
+aws ec2 describe-images \ 
+--filters Name=architecture,Values=x86_64 Name=name,Values="amzn2-ami-ecs-hvm-*"
+```
+
+

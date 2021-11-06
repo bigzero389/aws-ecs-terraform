@@ -89,16 +89,11 @@ data "aws_iam_policy_document" "task_role" {
 }
 
 data "aws_alb" "http" {
-  filter {
-    name = "tag:Name"
-    values = ["${local.svc_nm}-alb"]
-  }
   #arn  = "arn:aws:elasticloadbalancing:ap-northeast-2:160270626841:loadbalancer/app/dyheo-alb/ab3e32e5c83b808d"
-  #name = "dyheo-alb"
+  name = "${local.svc_nm}-alb"
 }
 
 resource "aws_iam_role" "execution_role" {
-  #name               = "${var.service_name}_ecsTaskExecutionRole"
   name               = "${local.svc_nm}_ecsTaskExecutionRole"
   assume_role_policy = "${data.aws_iam_policy_document.assume_by_ecs.json}"
 }
@@ -109,7 +104,6 @@ resource "aws_iam_role_policy" "execution_role" {
 }
 
 resource "aws_iam_role" "task_role" {
-  #name               = "${var.service_name}_ecsTaskRole"
   name               = "${local.svc_nm}_ecsTaskRole"
   assume_role_policy = "${data.aws_iam_policy_document.assume_by_ecs.json}"
 }
@@ -119,21 +113,17 @@ resource "aws_iam_role_policy" "task_role" {
   policy = "${data.aws_iam_policy_document.task_role.json}"
 }
 
-resource "aws_ecs_cluster" "this" {
-  #name = "${var.service_name}_cluster"
-  name = "${local.svc_nm}_ecs_cluster"
-}
-
 resource "aws_security_group" "ecs" {
-  name   = "${local.svc_nm}-allow-ecs"
-  #name   = "${var.service_name}-allow-ecs"
-  #vpc_id = "${aws_vpc.this.id}"
+  name   = "${local.svc_nm}-sg-ecs"
   vpc_id = "${data.aws_vpc.this.id}"
 
+  ## VPC 내부네트워크 모든 포트를 open 한다.
   ingress {
     from_port       = 0
     protocol        = "-1"
     to_port         = 0
+    #cidr_blocks = ["10.55.0.0/16"]
+    cidr_blocks = ["${data.aws_vpc.this.cidr_block}"]
     #security_groups = ["${aws_security_group.alb.id}"]
     security_groups = ["${data.aws_security_group.sg.id}"]
   }
@@ -144,4 +134,21 @@ resource "aws_security_group" "ecs" {
     to_port     = 0
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  tags = {
+    Name = "${local.svc_nm}-sg-ecs",
+    Creator= "${local.creator}",
+    Group = "${local.group}"
+  }
 }
+
+resource "aws_ecs_cluster" "this" {
+  name = "${local.svc_nm}-ecs-cluster"
+  tags = {
+    Name = "${local.svc_nm}-ecs-cluster",
+    Creator= "${local.creator}",
+    Group = "${local.group}"
+  }
+}
+
+

@@ -172,13 +172,25 @@ resource "aws_security_group" "security-group" {
 
   ingress = [
     {
+      description      = "ping"
+      from_port = -1
+      to_port = -1
+      protocol = "icmp"
+      cidr_blocks      = ["125.177.68.23/32", "211.206.114.80/32", "10.55.0.0/16"]
+      ipv6_cidr_blocks = []
+      prefix_list_ids  = []
+      security_groups  = []
+      self = false
+   },
+
+    {
       description      = "HTTP open"
       from_port        = 80
       to_port          = 80
       protocol         = "tcp"
       #cidr_blocks      = ["0.0.0.0/0"]
       cidr_blocks      = ["125.177.68.23/32", "211.206.114.80/32", "10.55.0.0/16"]
-      ipv6_cidr_blocks = ["::/0"]
+      ipv6_cidr_blocks = []
       prefix_list_ids  = []
       security_groups  = []
       self = false
@@ -190,7 +202,7 @@ resource "aws_security_group" "security-group" {
       protocol         = "tcp"
       #cidr_blocks      = ["0.0.0.0/0"]
       cidr_blocks      = ["125.177.68.23/32", "211.206.114.80/32", "10.55.0.0/16"]
-      ipv6_cidr_blocks = ["::/0"]
+      ipv6_cidr_blocks = []
       prefix_list_ids  = []
       security_groups  = []
       self = false
@@ -201,7 +213,7 @@ resource "aws_security_group" "security-group" {
       to_port          = 3000
       protocol         = "tcp"
       cidr_blocks      = ["125.177.68.23/32", "211.206.114.80/32", "10.55.0.0/16"]
-      ipv6_cidr_blocks = ["::/0"]
+      ipv6_cidr_blocks = []
       prefix_list_ids  = []
       security_groups  = []
       self = false
@@ -213,7 +225,7 @@ resource "aws_security_group" "security-group" {
       protocol         = "tcp"
       type             = "ssh"
       cidr_blocks      = ["125.177.68.23/32", "211.206.114.80/32"]
-      ipv6_cidr_blocks = ["::/0"]
+      ipv6_cidr_blocks = []
       prefix_list_ids  = []
       security_groups  = []
       self = false
@@ -224,7 +236,7 @@ resource "aws_security_group" "security-group" {
       to_port          = 8080
       protocol         = "tcp"
       cidr_blocks      = ["125.177.68.23/32", "211.206.114.80/32", "10.55.0.0/16"]
-      ipv6_cidr_blocks = ["::/0"]
+      ipv6_cidr_blocks = []
       prefix_list_ids  = []
       security_groups  = []
       self = false
@@ -237,7 +249,7 @@ resource "aws_security_group" "security-group" {
       to_port          = 0
       protocol         = "-1"
       cidr_blocks      = ["0.0.0.0/0"]
-      ipv6_cidr_blocks = ["::/0"]
+      ipv6_cidr_blocks = []
       prefix_list_ids  = []
       security_groups  = []
       self = false

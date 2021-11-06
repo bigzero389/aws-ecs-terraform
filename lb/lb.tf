@@ -15,6 +15,9 @@ locals {
   ## EC2 를 만들기 위한 로컬변수 선언
   ami = "ami-0e4a9ad2eb120e054" ## AMAZON LINUX 2
   instance_type = "t2.micro"
+
+## Application Service Port
+  service_port = 3000
 }
 
 ## TAG NAME 으로 vpc id 를 가져온다.
@@ -139,13 +142,13 @@ data "aws_instances" "target_instance" {
 
 resource "aws_alb_target_group" "public" {
   name     = "${local.svc_nm}-alb-tg"
-  port     = 8080
+  port     = local.service_port
   protocol = "HTTP"
   vpc_id   = data.aws_vpc.this.id
 
   health_check {
     interval            = 30
-    path                = "/examples/index.jsp"
+    path                = "/"
     healthy_threshold   = 3
     unhealthy_threshold = 3
   }
@@ -177,7 +180,7 @@ resource "aws_alb_target_group_attachment" "public" {
   count = length(tolist(data.aws_instances.target_instance.ids))
   target_group_arn = aws_alb_target_group.public.arn
   target_id        = element(tolist(data.aws_instances.target_instance.ids), count.index)
-  port             = 8080
+  port             = local.service_port
 }
 
 #resource "aws_alb_target_group_attachment" "static" {
