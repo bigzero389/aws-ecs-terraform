@@ -28,26 +28,26 @@ terraform destroy [--auto-approve]
 * 아래 "svc_nm"과 "pem_file" 을 적절한 값으로 변경한다.
 ```
  ...
- 12 locals {
- 13   ## 신규 VPC 를 구성하는 경우 svc_nm 과 pem_file 를 새로 넣어야 한다.
- 14   svc_nm = "dyheo"
- 15   pem_file = "dyheo-histech-2"
+locals {
+  ## 신규 VPC 를 구성하는 경우 svc_nm 과 pem_file 를 새로 넣어야 한다.
+  svc_nm = "dyheo"
+  pem_file = "dyheo-histech-2"
  ...
 ```
 * 아래 cidr_blocks 에 본인이 ssh 로 접속할 공인IP 로 변경한다.
 ```
-161     {
-162       description      = "SSH from home"
-163       from_port        = 22
-164       to_port          = 22
-165       protocol         = "tcp"
-166       type             = "ssh"
-167       cidr_blocks      = ["125.177.68.23/32", "211.206.114.80/32"]
-168       ipv6_cidr_blocks = ["::/0"]
-169       prefix_list_ids  = []
-170       security_groups  = []
-171       self = false
-172     }
+{
+  description      = "SSH from home"
+  from_port        = 22
+  to_port          = 22
+  protocol         = "tcp"
+  type             = "ssh"
+  cidr_blocks      = ["125.177.68.23/32", "211.206.114.80/32"]
+  ipv6_cidr_blocks = ["::/0"]
+  prefix_list_ids  = []
+  security_groups  = []
+  self = false
+}
 
 ```
 
@@ -63,9 +63,9 @@ terraform destroy [--auto-approve]
 
 * 아래 부분을 자기 환경에 맞는 값으로 수정해서 실행한다.
 ```
- 7 locals {
-  8   svc_nm = "dyheo"
-  9   pem_file = "dyheo-histech-2"
+locals {
+  svc_nm = "dyheo"
+  pem_file = "dyheo-histech-2"
 ```
 [terraform example reference](https://github.com/largezero/ecs-with-codepipeline-example-by-terraform).  
 * aws cli 를 이용하여 ami list 가져오기

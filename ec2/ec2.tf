@@ -25,11 +25,37 @@ data "aws_vpc" "this" {
 }
 
 ## TAG NAME 으로 security group 을 가져온다.
-data "aws_security_group" "security-group" {
+data "aws_security_group" "sg-core" {
   vpc_id = "${data.aws_vpc.this.id}"
   filter {
     name = "tag:Name"
     values = ["${local.svc_nm}-sg-core"]
+  }
+}
+
+resource "aws_security_group" "sg-ec2" {
+  name = "${local.svc_nm}-sg-ec2"
+  description = "ec2 server 80 service test"
+  vpc_id = "${data.aws_vpc.this.id}"
+
+  ingress {
+    from_port       = 3000
+    protocol        = "tcp"
+    to_port         = 3000
+    cidr_blocks = ["${data.aws_vpc.this.cidr_block}"]
+  }
+
+  egress {
+    from_port   = 0
+    protocol    = "-1"
+    to_port     = 0
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${local.svc_nm}-sg-ec2"
+    Creator = "${local.creator}"
+    Group = "${local.group}"
   }
 }
 
@@ -54,7 +80,10 @@ resource "aws_instance" "dyheo-ec2" {
   #associate_public_ip_address = true
   instance_type = "${local.instance_type}"
   key_name = "${local.pem_file}"
-  vpc_security_group_ids = ["${data.aws_security_group.security-group.id}"]
+  vpc_security_group_ids = [
+    "${data.aws_security_group.sg-core.id}",
+    "${aws_security_group.sg-ec2.id}"
+  ]
 
   #subnet_id = "${data.aws_subnet.public.id}"
   subnet_id = element(tolist(data.aws_subnet_ids.public.ids), count.index)

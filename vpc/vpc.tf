@@ -165,7 +165,7 @@ resource "aws_route" "private_nat_gateway" {
 
 
 # AWS Security Group
-resource "aws_security_group" "security-group" {
+resource "aws_security_group" "sg-core" {
   name        = "${local.svc_nm}-sg-core"
   description = "${local.svc_nm} security group"
   vpc_id      = "${aws_vpc.this.id}"

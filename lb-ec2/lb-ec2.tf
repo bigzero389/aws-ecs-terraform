@@ -14,7 +14,7 @@ locals {
 
   ## EC2 를 만들기 위한 로컬변수 선언
   ami = "ami-0e4a9ad2eb120e054" ## AMAZON LINUX 2
-  instance_type = "t2.micro"
+  instance_type = "t3.micro"
 
 ## Application Service Port
   service_port = 3000
@@ -28,12 +28,36 @@ data "aws_vpc" "this" {
   }
 }
 
-## TAG NAME 으로 security group 을 가져온다.
-data "aws_security_group" "sg-core" {
+resource "aws_security_group" "sg-lb-ec2" {
+  name = "${local.svc_nm}-sg-lb-ec2"
+  description = "ec2 server 80/443 service test"
   vpc_id = "${data.aws_vpc.this.id}"
-  filter {
-    name = "tag:Name"
-    values = ["${local.svc_nm}-sg-core"]
+
+  ingress {
+    from_port       = 80
+    protocol        = "tcp"
+    to_port         = 80
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port       = 443
+    protocol        = "tcp"
+    to_port         = 443
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    protocol    = "-1"
+    to_port     = 0
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${local.svc_nm}-sg-lb-ec2"
+    Creator = "${local.creator}"
+    Group = "${local.group}"
   }
 }
 
@@ -54,40 +78,9 @@ data "aws_subnet" "public" {
 data "aws_elb_service_account" "main" {}
 
 resource "aws_s3_bucket" "this" {
-  bucket        = "${local.svc_nm}-s3-alb-log"
+  bucket        = "${local.svc_nm}-s3-alb-ec2-log"
   acl           = "log-delivery-write"
   force_destroy = true
-}
-
-resource "aws_s3_bucket_policy" "this" {
-  bucket = aws_s3_bucket.this.id
-  policy = data.aws_iam_policy_document.s3_bucket_lb_write.json
-}
-
-resource "aws_alb" "public" {
-  name               = "${local.svc_nm}-alb"
-  internal           = false
-  load_balancer_type = "application"
-  #security_groups    = [aws_security_group.lb_sg.id]
-  security_groups    = [data.aws_security_group.sg-core.id]
-  subnets            = data.aws_subnet_ids.public.ids
-
-  ## 임의로 삭제 가능여부 
-  #enable_deletion_protection = true
-  enable_deletion_protection = false
-
-  access_logs {
-    #bucket  = aws_s3_bucket.lb_logs.bucket
-    bucket  = aws_s3_bucket.this.bucket
-    prefix  = "${local.svc_nm}-alb-public"
-    enabled = true
-  }
-
-  tags = {
-    Name = "${local.svc_nm}-alb"
-    Creator = "${local.creator}"
-    Group = "${local.group}"
-  }
 }
 
 data "aws_iam_policy_document" "s3_bucket_lb_write" {
@@ -133,16 +126,43 @@ data "aws_iam_policy_document" "s3_bucket_lb_write" {
   }
 }
 
+resource "aws_s3_bucket_policy" "this" {
+  bucket = aws_s3_bucket.this.id
+  policy = data.aws_iam_policy_document.s3_bucket_lb_write.json
+}
+
+resource "aws_lb" "public" {
+  name               = "${local.svc_nm}-lb-ec2"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.sg-lb-ec2.id]
+  subnets            = data.aws_subnet_ids.public.ids
+
+  ## 임의로 삭제 가능여부 
+  enable_deletion_protection = false
+
+  access_logs {
+    bucket  = aws_s3_bucket.this.bucket
+    prefix  = "${local.svc_nm}-lb-ec2-public"
+    enabled = true
+  }
+
+  tags = {
+    Name = "${local.svc_nm}-lb-ec2"
+    Creator = "${local.creator}"
+    Group = "${local.group}"
+  }
+}
+
 data "aws_instances" "target_instance" {
   filter {
     name = "tag:Name"
     values = ["${local.svc_nm}-ec2-*"]
-    #values = ["${local.svc_nm}-ecs-*"]
   }
 }
 
-resource "aws_alb_target_group" "public" {
-  name     = "${local.svc_nm}-alb-tg"
+resource "aws_lb_target_group" "public" {
+  name     = "${local.svc_nm}-lb-ec2-tg"
   port     = local.service_port
   protocol = "HTTP"
   vpc_id   = data.aws_vpc.this.id
@@ -155,40 +175,18 @@ resource "aws_alb_target_group" "public" {
   }
 
   tags = { 
-    Name = "${local.svc_nm}-alb-tg-public"
+    Name = "${local.svc_nm}-lb-tg-ec2-public"
     Creator = "${local.creator}"
     Group = "${local.group}"
   }
 }
 
-#resource "aws_alb_target_group" "static" {
-#  name     = "static-target-group"
-#  port     = 8080
-#  protocol = "HTTP"
-#  vpc_id   = "${aws_default_vpc.dmz.id}"
-#
-#  health_check {
-#    interval            = 30
-#    path                = "/ping"
-#    healthy_threshold   = 3
-#    unhealthy_threshold = 3
-#  }
-#
-#  tags { Name = "Static Target Group" }
-#}
-
-resource "aws_alb_target_group_attachment" "public" {
+resource "aws_lb_target_group_attachment" "public" {
   count = length(tolist(data.aws_instances.target_instance.ids))
-  target_group_arn = aws_alb_target_group.public.arn
+  target_group_arn = aws_lb_target_group.public.arn
   target_id        = element(tolist(data.aws_instances.target_instance.ids), count.index)
   port             = local.service_port
 }
-
-#resource "aws_alb_target_group_attachment" "static" {
-#  target_group_arn = "${aws_alb_target_group.static.arn}"
-#  target_id        = "${aws_instance.static.id}"
-#  port             = 8080
-#}
 
 data "aws_acm_certificate" "histech_dot_net"   { 
   #domain   = "*.example.com."
@@ -196,27 +194,25 @@ data "aws_acm_certificate" "histech_dot_net"   {
   statuses = ["ISSUED"]
 }
 
-resource "aws_alb_listener" "https" {
-  load_balancer_arn = "${aws_alb.public.arn}"
+resource "aws_lb_listener" "https" {
+  load_balancer_arn = "${aws_lb.public.arn}"
   port              = "443"
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
   certificate_arn   = "${data.aws_acm_certificate.histech_dot_net.arn}"
 
   default_action {
-    target_group_arn = "${aws_alb_target_group.public.arn}"
+    target_group_arn = "${aws_lb_target_group.public.arn}"
     type             = "forward"
   }
 }
 
-resource "aws_alb_listener" "http" {
-  load_balancer_arn = "${aws_alb.public.arn}"
+resource "aws_lb_listener" "http" {
+  load_balancer_arn = "${aws_lb.public.arn}"
   port              = "80"
   protocol          = "HTTP"
 
   default_action {
-#    target_group_arn = "${aws_alb_target_group.public.arn}"
-#    type             = "forward"
     type = "redirect"
 
     redirect {
@@ -227,42 +223,6 @@ resource "aws_alb_listener" "http" {
   }
 }
 
-#resource "aws_alb_listener_rule" "static" {
-#  listener_arn = "${aws_alb_listener.https.arn}"
-#  priority     = 100
-#
-#  action {
-#    type             = "forward"
-#    target_group_arn = "${aws_alb_target_group.static.arn}"
-#  }
-#
-#  condition {
-#    field  = "path-pattern"
-#    values = ["/static/*"]
-#  }
-#}
-
-#resource "aws_alb_listener_rule" "redirect_http_to_https" {
-#  listener_arn = aws_alb_listener.http.arn
-#
-#  action {
-#    type = "redirect"
-#
-#    redirect {
-#      port        = "443"
-#      protocol    = "HTTPS"
-#      status_code = "HTTP_301"
-#    }
-#  }
-#
-#  condition {
-#    http_header {
-#      http_header_name = "scheme"
-#      values           = 
-#    }
-#  }
-#}
-
 data "aws_route53_zone" "histech_dot_net" {
   name = "hist-tech.net."
 }
@@ -270,12 +230,12 @@ data "aws_route53_zone" "histech_dot_net" {
 
 resource "aws_route53_record" "public_dyheo" {
   zone_id = "${data.aws_route53_zone.histech_dot_net.zone_id}"
-  name    = "dyheo-test.hist-tech.net"
+  name    = "dyheo-ec2.hist-tech.net"
   type    = "A"
 
   alias {
-    name     = "${aws_alb.public.dns_name}"
-    zone_id  = "${aws_alb.public.zone_id}"
+    name     = "${aws_lb.public.dns_name}"
+    zone_id  = "${aws_lb.public.zone_id}"
     evaluate_target_health = true
   }
 }
