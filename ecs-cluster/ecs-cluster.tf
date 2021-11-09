@@ -4,7 +4,7 @@ provider "aws" {
 }
 
 locals {
-  svc_nm = "dyheo"
+  svc_nm = "dy"
   creator = "dyheo"
   group = "t-dyheo"
 
@@ -24,11 +24,11 @@ data "aws_vpc" "this" {
 }
 
 ## TAG NAME 으로 security group 을 가져온다.
-data "aws_security_group" "sg" {
+data "aws_security_group" "sg-core" {
   vpc_id = "${data.aws_vpc.this.id}"
   filter {
     name = "tag:Name"
-    values = ["${local.svc_nm}-sg"]
+    values = ["${local.svc_nm}-sg-core"]
   }
 }
 
@@ -117,15 +117,30 @@ resource "aws_security_group" "ecs" {
   name   = "${local.svc_nm}-sg-ecs"
   vpc_id = "${data.aws_vpc.this.id}"
 
-  ## VPC 내부네트워크 모든 포트를 open 한다.
+## All VPC Port Open
+#  ingress {
+#    from_port       = 0
+#    protocol        = "-1"
+#    to_port         = 0
+#    cidr_blocks = ["${data.aws_vpc.this.cidr_block}"]
+#    security_groups = ["${data.aws_security_group.sg-core.id}"]
+#  }
+
+## Core Security Group 포함.
   ingress {
     from_port       = 0
     protocol        = "-1"
     to_port         = 0
-    #cidr_blocks = ["10.55.0.0/16"]
+    #cidr_blocks = ["${data.aws_vpc.this.cidr_block}"]
+    security_groups = ["${data.aws_security_group.sg-core.id}"]
+  }
+
+## 서비스로 오픈될 포트 open
+  ingress {
+    from_port       = 3000
+    protocol        = "tcp"
+    to_port         = 3000
     cidr_blocks = ["${data.aws_vpc.this.cidr_block}"]
-    #security_groups = ["${aws_security_group.alb.id}"]
-    security_groups = ["${data.aws_security_group.sg.id}"]
   }
 
   egress {

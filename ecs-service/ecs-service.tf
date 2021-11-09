@@ -4,7 +4,7 @@ provider "aws" {
 }
 
 locals {
-  svc_nm = "dyheo"
+  svc_nm = "dy"
   creator = "dyheo"
   group = "t-dyheo"
 
@@ -27,7 +27,7 @@ data "aws_ecs_cluster" "this" {
   cluster_name = "${local.svc_nm}-ecs-cluster"
 }
 
-data "aws_alb_target_group" "this" {
+data "aws_alb_target_group" "selected" {
   name = "${local.svc_nm}-alb-tg"
 }
 
@@ -41,15 +41,15 @@ data "aws_alb_listener" "selected80" {
 }
 
 resource "aws_ecs_service" "this" {
-  name            = "${local.svc_nm}-ecs-service"
+  name            = "${local.svc_nm}-ec2-ecs-service"
   task_definition = "${data.aws_ecs_task_definition.this.id}"
   cluster         = "${data.aws_ecs_cluster.this.arn}"
 
   load_balancer {
     #target_group_arn = "${data.aws_alb_target_group.this.0.arn}"
-    target_group_arn = "${data.aws_alb_target_group.this.arn}"
+    target_group_arn = "${data.aws_alb_target_group.selected.arn}"
     #container_name   = "${local.svc_nm}"
-    container_name   = "helloworld"
+    container_name   = "dy-helloworld"
     container_port   = "${local.container_port}"
   }
 
@@ -58,9 +58,9 @@ resource "aws_ecs_service" "this" {
   deployment_maximum_percent         = 200
   deployment_minimum_healthy_percent = 100
 
-#  deployment_controller {
-#    type = "CODE_DEPLOY"
-#  }
+  deployment_controller {
+    type = "CODE_DEPLOY"
+  }
 
   depends_on = [data.aws_alb_listener.selected80]
 

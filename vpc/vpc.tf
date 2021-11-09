@@ -11,7 +11,7 @@ variable "region" {
 
 locals {
   ## 신규 VPC 를 구성하는 경우 svc_nm 과 pem_file 를 새로 넣어야 한다.
-  svc_nm = "dyheo"
+  svc_nm = "dy"
   creator = "dyheo"
   group = "t-dyheo"
 
@@ -166,7 +166,7 @@ resource "aws_route" "private_nat_gateway" {
 
 # AWS Security Group
 resource "aws_security_group" "security-group" {
-  name        = "${local.svc_nm}-sg"
+  name        = "${local.svc_nm}-sg-core"
   description = "${local.svc_nm} security group"
   vpc_id      = "${aws_vpc.this.id}"
 
@@ -181,42 +181,6 @@ resource "aws_security_group" "security-group" {
       prefix_list_ids  = []
       security_groups  = []
       self = false
-   },
-
-    {
-      description      = "HTTP open"
-      from_port        = 80
-      to_port          = 80
-      protocol         = "tcp"
-      #cidr_blocks      = ["0.0.0.0/0"]
-      cidr_blocks      = ["125.177.68.23/32", "211.206.114.80/32", "10.55.0.0/16"]
-      ipv6_cidr_blocks = []
-      prefix_list_ids  = []
-      security_groups  = []
-      self = false
-    },
-    {
-      description      = "HTTPS open"
-      from_port        = 443
-      to_port          = 443
-      protocol         = "tcp"
-      #cidr_blocks      = ["0.0.0.0/0"]
-      cidr_blocks      = ["125.177.68.23/32", "211.206.114.80/32", "10.55.0.0/16"]
-      ipv6_cidr_blocks = []
-      prefix_list_ids  = []
-      security_groups  = []
-      self = false
-    },
-    {
-      description      = "node open"
-      from_port        = 3000
-      to_port          = 3000
-      protocol         = "tcp"
-      cidr_blocks      = ["125.177.68.23/32", "211.206.114.80/32", "10.55.0.0/16"]
-      ipv6_cidr_blocks = []
-      prefix_list_ids  = []
-      security_groups  = []
-      self = false
     },
     {
       description      = "SSH open"
@@ -224,17 +188,6 @@ resource "aws_security_group" "security-group" {
       to_port          = 22
       protocol         = "tcp"
       type             = "ssh"
-      cidr_blocks      = ["125.177.68.23/32", "211.206.114.80/32"]
-      ipv6_cidr_blocks = []
-      prefix_list_ids  = []
-      security_groups  = []
-      self = false
-    },
-    {
-      description      = "tomcat open in private"
-      from_port        = 8080
-      to_port          = 8080
-      protocol         = "tcp"
       cidr_blocks      = ["125.177.68.23/32", "211.206.114.80/32", "10.55.0.0/16"]
       ipv6_cidr_blocks = []
       prefix_list_ids  = []
@@ -258,7 +211,7 @@ resource "aws_security_group" "security-group" {
   ]
 
   tags = {
-    Name = "${local.svc_nm}-sg",
+    Name = "${local.svc_nm}-sg-core",
     Creator= "${local.creator}",
     Group = "${local.group}"
   }

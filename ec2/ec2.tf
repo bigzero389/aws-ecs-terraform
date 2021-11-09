@@ -5,7 +5,7 @@ provider "aws" {
 }
 
 locals {
-  svc_nm = "dyheo"
+  svc_nm = "dy"
   creator = "dyheo"
   group = "t-dyheo"
 
@@ -13,7 +13,7 @@ locals {
 
   ## EC2 를 만들기 위한 로컬변수 선언
   ami = "ami-0e4a9ad2eb120e054" ## AMAZON LINUX 2
-  instance_type = "t2.micro"
+  instance_type = "t3.micro"
 }
 
 ## TAG NAME 으로 vpc id 를 가져온다.
@@ -29,7 +29,7 @@ data "aws_security_group" "security-group" {
   vpc_id = "${data.aws_vpc.this.id}"
   filter {
     name = "tag:Name"
-    values = ["${local.svc_nm}-sg"]
+    values = ["${local.svc_nm}-sg-core"]
   }
 }
 

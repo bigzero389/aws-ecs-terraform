@@ -4,7 +4,7 @@ provider "aws" {
 }
 
 locals {
-  svc_nm = "dyheo"
+  svc_nm = "dy"
   creator = "dyheo"
   group = "t-dyheo"
 
@@ -53,8 +53,8 @@ resource "aws_ecs_task_definition" "this" {
         }
       ],
       "memoryReservation" : ${local.memory_reserv},
-      "image": "160270626841.dkr.ecr.ap-northeast-2.amazonaws.com/helloworld:latest",
-      "name": "helloworld"
+      "image": "160270626841.dkr.ecr.ap-northeast-2.amazonaws.com/dy-helloworld:latest",
+      "name": "dy-helloworld"
     }
 ]
 DEFINITION

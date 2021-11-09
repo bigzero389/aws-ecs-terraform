@@ -4,7 +4,7 @@ provider "aws" {
 }
 
 locals {
-  svc_nm = "dyheo"
+  svc_nm = "dy"
   creator = "dyheo"
   group = "t-dyheo"
 
@@ -12,7 +12,7 @@ locals {
 
   ## EC2 를 만들기 위한 로컬변수 선언
   ami = "ami-0e4a9ad2eb120e054" ## AMAZON LINUX 2
-  instance_type = "t2.micro"
+  instance_type = "t3.micro"
 }
 
 data "aws_vpc" "this" {
@@ -30,7 +30,6 @@ data "aws_ami" "latest-ecs" {
     name   = "name"
     values = ["amzn2-ami-ecs-hvm-*"]
     #values = ["*amazon-ecs-optimized"]
-    #values = ["Amazon ECS-Optimized Amazon Linux 2 AMI"]
   }
 
   filter {
@@ -72,7 +71,7 @@ resource "aws_iam_instance_profile" "ecs-instance-profile" {
   role = "${aws_iam_role.ecs-instance-role.id}"
 }
 
-data "aws_security_group" "ecs" {
+data "aws_security_group" "sg-ecs" {
   vpc_id = "${data.aws_vpc.this.id}"
   filter {
     name = "tag:Name"
@@ -80,11 +79,19 @@ data "aws_security_group" "ecs" {
   }
 }
 
+data "aws_security_group" "sg-core" {
+  vpc_id = "${data.aws_vpc.this.id}"
+  filter {
+    name = "tag:Name"
+    values = ["${local.svc_nm}-sg-core"]
+  }
+}
+
 resource "aws_launch_configuration" "this" {
   name                 = "${local.svc_nm}-launch-config"
   image_id             = "${data.aws_ami.latest-ecs.id}"
   #image_id             = "${local.ami}"
-  instance_type        = "t3.micro"
+  instance_type        = "${local.instance_type}"
   iam_instance_profile = "${aws_iam_instance_profile.ecs-instance-profile.id}"
 
   root_block_device {
@@ -97,7 +104,10 @@ resource "aws_launch_configuration" "this" {
     create_before_destroy = true
   }
 
-  security_groups             = ["${data.aws_security_group.ecs.id}"]
+  security_groups             = [
+    "${data.aws_security_group.sg-ecs.id}",
+    "${data.aws_security_group.sg-core.id}"
+  ]
   associate_public_ip_address = "true"
   key_name                    = "${local.pem_file}"
   user_data                   = <<EOF
@@ -127,7 +137,7 @@ resource "aws_autoscaling_group" "this" {
     tag {
       key                 = "Name"
       #value               = "ECS-Instance-${local.svc_nm}-service"
-      value               = "${local.svc_nm}-ecs-service"
+      value               = "${local.svc_nm}-ec2-ecs-instance-service"
       propagate_at_launch = true
   }
 }

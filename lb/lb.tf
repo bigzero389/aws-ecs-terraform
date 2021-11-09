@@ -6,7 +6,7 @@ provider "aws" {
 }
 
 locals {
-  svc_nm = "dyheo"
+  svc_nm = "dy"
   creator = "dyheo"
   group = "t-dyheo"
 
@@ -29,11 +29,11 @@ data "aws_vpc" "this" {
 }
 
 ## TAG NAME 으로 security group 을 가져온다.
-data "aws_security_group" "security-group" {
+data "aws_security_group" "sg-core" {
   vpc_id = "${data.aws_vpc.this.id}"
   filter {
     name = "tag:Name"
-    values = ["${local.svc_nm}-sg"]
+    values = ["${local.svc_nm}-sg-core"]
   }
 }
 
@@ -69,7 +69,7 @@ resource "aws_alb" "public" {
   internal           = false
   load_balancer_type = "application"
   #security_groups    = [aws_security_group.lb_sg.id]
-  security_groups    = [data.aws_security_group.security-group.id]
+  security_groups    = [data.aws_security_group.sg-core.id]
   subnets            = data.aws_subnet_ids.public.ids
 
   ## 임의로 삭제 가능여부 
@@ -137,6 +137,7 @@ data "aws_instances" "target_instance" {
   filter {
     name = "tag:Name"
     values = ["${local.svc_nm}-ec2-*"]
+    #values = ["${local.svc_nm}-ecs-*"]
   }
 }
 
