@@ -93,3 +93,6 @@ aws ec2 describe-images \
 3. sudo chmod 666 /var/run/docker.sock
 * [reference](https://newbedev.com/got-permission-denied-while-trying-to-connect-to-the-docker-daemon-socket-at-unix-var-run-docker-sock-post-http-2fvar-2frun-2fdocker-sock-v1-24-auth-dial-unix-var-run-docker-sock-connect-permission-denied-code-exampl)
 
+### 순서
+* vpc => ecr => ecs-codebuild(build run and push image to ecr) => ecs-cluster => ecs-task 
+      => lb-ecs => ecs-service => ecs-autoscale => ecs-codedeploy 
