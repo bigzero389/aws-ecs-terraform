@@ -88,9 +88,9 @@ data "aws_iam_policy_document" "task_role" {
   }
 }
 
-data "aws_alb" "http" {
-  #arn  = "arn:aws:elasticloadbalancing:ap-northeast-2:160270626841:loadbalancer/app/dyheo-alb/ab3e32e5c83b808d"
-  name = "${local.svc_nm}-alb"
+data "aws_lb" "lb-ecs" {
+  #arn  = "arn:aws:elasticloadbalancing:ap-northeast-2:160270626841:loadbalancer/app/dyheo-lb-ecs/ab3e32e5c83b808d"
+  name = "${local.svc_nm}-lb-ecs"
 }
 
 resource "aws_iam_role" "execution_role" {
@@ -135,11 +135,11 @@ resource "aws_security_group" "ecs" {
     security_groups = ["${data.aws_security_group.sg-core.id}"]
   }
 
-## 서비스로 오픈될 포트 open
+## VPC 내에 모든 포트를 연다. ecs 에서 자동으로 다른 포트를 트라이 한다.
   ingress {
-    from_port       = 3000
+    from_port       = 0
     protocol        = "tcp"
-    to_port         = 3000
+    to_port         = 65535
     cidr_blocks = ["${data.aws_vpc.this.cidr_block}"]
   }
 

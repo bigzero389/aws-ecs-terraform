@@ -24,7 +24,7 @@ data "aws_iam_policy_document" "assume_by_codedeploy" {
 }
 
 resource "aws_iam_role" "codedeploy" {
-  name               = "${local.svc_nm}-codedeploy"
+  name               = "${local.svc_nm}-ecs-service-codedeploy"
   assume_role_policy = "${data.aws_iam_policy_document.assume_by_codedeploy.json}"
 }
 
@@ -97,7 +97,7 @@ resource "aws_iam_role_policy" "codedeploy" {
 
 resource "aws_codedeploy_app" "this" {
   compute_platform = "ECS"
-  name             = "${local.svc_nm}-service-deploy"
+  name             = "${local.svc_nm}-ecs-service-deploy"
 }
 
 data "aws_ecs_service" "selected" {
@@ -106,7 +106,7 @@ data "aws_ecs_service" "selected" {
 }
 
 data "aws_lb" "selected" {
-  name = "${local.svc_nm}-alb"
+  name = "${local.svc_nm}-lb-ecs"
 }
 
 data "aws_lb_listener" "selected80" {
@@ -114,13 +114,17 @@ data "aws_lb_listener" "selected80" {
   port = 80
 }
 
-data "aws_lb_target_group" "selected" {
-  name = "${local.svc_nm}-alb-tg"
+data "aws_lb_target_group" "blue" {
+  name = "${local.svc_nm}-lb-ecs-tg-primary"
+}
+
+data "aws_lb_target_group" "green" {
+  name = "${local.svc_nm}-lb-ecs-tg-secondary"
 }
 
 resource "aws_codedeploy_deployment_group" "this" {
   app_name               = "${aws_codedeploy_app.this.name}"
-  deployment_group_name  = "${local.svc_nm}-service-deploy-group"
+  deployment_group_name  = "${local.svc_nm}-ecs-service-deploy-group"
   deployment_config_name = "CodeDeployDefault.ECSAllAtOnce"
   service_role_arn       = "${aws_iam_role.codedeploy.arn}"
 
@@ -152,11 +156,11 @@ resource "aws_codedeploy_deployment_group" "this" {
       }
 
       target_group {
-        name = "${data.aws_lb_target_group.selected.*.name[0]}"
+        name = "${data.aws_lb_target_group.blue.name}"
       }
 
       target_group {
-        name = "${data.aws_lb_target_group.selected.*.name[1]}"
+        name = "${data.aws_lb_target_group.green.name}"
       }
     }
   }

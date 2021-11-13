@@ -189,7 +189,6 @@ resource "aws_lb_target_group_attachment" "public" {
 }
 
 data "aws_acm_certificate" "histech_dot_net"   { 
-  #domain   = "*.example.com."
   domain   = "*.hist-tech.net"
   statuses = ["ISSUED"]
 }

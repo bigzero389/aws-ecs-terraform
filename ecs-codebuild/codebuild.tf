@@ -117,7 +117,7 @@ resource "aws_codebuild_project" "this" {
 
     environment_variable {
       name  = "IMAGE_REPO_NAME"
-      value = "${local.svc_nm}"
+      value = "${local.svc_nm}-helloworld"
     }
 
     environment_variable {
@@ -148,8 +148,7 @@ resource "aws_codebuild_project" "this" {
 
   source {
     type            = "GITHUB"
-    #location        = "https://github.com/${local.github_owner}/${local.github_repo}.git"
-    location        = "https://github.com/largezero/HelloWorldNode.git"
+    location        = "https://github.com/largezero/HelloBigzeroWorldNode.git"
     git_clone_depth = 1
   }
 
