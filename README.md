@@ -95,4 +95,4 @@ aws ec2 describe-images \
 
 ### 순서
 * vpc => ecr => ecs-codebuild(build run and push image to ecr) => ecs-cluster => ecs-task 
-      => lb-ecs => ecs-service => ecs-autoscale => ecs-codedeploy 
+      => lb-ecs => ecs-service => ecs-autoscale => ecs-codedeploy => ecs-codepipeline

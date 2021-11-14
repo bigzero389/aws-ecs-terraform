@@ -101,7 +101,7 @@ resource "aws_iam_role_policy" "codebuild" {
 }
 
 resource "aws_codebuild_project" "this" {
-  name         = "${local.svc_nm}-codebuild"
+  name         = "${local.svc_nm}-ecs-codebuild"
   description  = "Codebuild for the ECS Green/Blue ${local.svc_nm} app"
   service_role = "${aws_iam_role.codebuild.arn}"
 

@@ -114,6 +114,7 @@ resource "aws_launch_configuration" "this" {
 #!/bin/bash
 # ECS Cluster 와 이름이 같아야 한다.
 echo ECS_CLUSTER=${local.svc_nm}-ecs-cluster>> /etc/ecs/ecs.config
+sudo yum update
 EOF
 }
 
@@ -129,15 +130,16 @@ resource "aws_autoscaling_group" "this" {
   name = "${local.svc_nm}-ecs-autoscaling-group"
   max_size = 2
   min_size = 1
-  desired_capacity = 1
+  desired_capacity = 2
   #vpc_zone_identifier = data.aws_subnet.private.*.id
   vpc_zone_identifier = tolist(data.aws_subnet_ids.public.ids)
   launch_configuration = "${aws_launch_configuration.this.name}"
   health_check_type = "ELB"
-    tag {
-      key                 = "Name"
-      #value               = "ECS-Instance-${local.svc_nm}-service"
-      value               = "${local.svc_nm}-ec2-ecs-instance-service"
-      propagate_at_launch = true
+
+  tag {
+    key                 = "Name"
+    #value               = "ECS-Instance-${local.svc_nm}-service"
+    value               = "${local.svc_nm}-ec2-ecs-instance-service"
+    propagate_at_launch = true
   }
 }

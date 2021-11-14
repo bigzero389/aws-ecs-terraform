@@ -1,24 +1,34 @@
-locals { #example : fill your information
+provider "aws" {
+  profile = "default"
+  region = "ap-northeast-2"
+}
+
+locals { 
+  svc_nm = "dy"
+  creator = "dyheo"
+  group = "t-dyheo"
+
   github_token = ""
-  github_owner = "gnokoheat"
-  github_repo = "ecs-nodejs-app-example"
-  github_branch = "master"
+  #github_owner = "garack@gmail.com"
+  github_owner = "largezero"
+  github_repo = "HelloBigzeroWorldNode"
+  github_branch = "main"
 }
 
 resource "aws_s3_bucket" "pipeline" {
-  bucket = "${var.service_name}-codepipeline-bucket"
+  bucket = "${local.svc_nm}-ecs-codepipeline-bucket"
 
   policy = <<POLICY
 {
   "Version": "2012-10-17",
-  "Id": "${var.service_name}Codepipeline",
+  "Id": "${local.svc_nm}Codepipeline",
   "Statement": [
         {
             "Sid": "DenyUnEncryptedObjectUploads",
             "Effect": "Deny",
             "Principal": "*",
             "Action": "s3:PutObject",
-            "Resource": "arn:aws:s3:::${var.service_name}-codepipeline-bucket/*",
+            "Resource": "arn:aws:s3:::${local.svc_nm}-ecs-codepipeline-bucket/*",
             "Condition": {
                 "StringNotEquals": {
                     "s3:x-amz-server-side-encryption": "aws:kms"
@@ -30,7 +40,7 @@ resource "aws_s3_bucket" "pipeline" {
             "Effect": "Deny",
             "Principal": "*",
             "Action": "s3:*",
-            "Resource": "arn:aws:s3:::${var.service_name}-codepipeline-bucket/*",
+            "Resource": "arn:aws:s3:::${local.svc_nm}-ecs-codepipeline-bucket/*",
             "Condition": {
                 "Bool": {
                     "aws:SecureTransport": "false"
@@ -56,7 +66,7 @@ data "aws_iam_policy_document" "assume_by_pipeline" {
 }
 
 resource "aws_iam_role" "pipeline" {
-  name = "${var.service_name}-pipeline-ecs-service-role"
+  name = "${local.svc_nm}-pipeline-ecs-service-role"
   assume_role_policy = "${data.aws_iam_policy_document.assume_by_pipeline.json}"
 }
 
@@ -113,6 +123,7 @@ data "aws_iam_policy_document" "pipeline" {
     effect = "Allow"
 
     actions = [
+      "codestar-connections:*",
       "elasticbeanstalk:*",
       "ec2:*",
       "elasticloadbalancing:*",
@@ -138,12 +149,17 @@ resource "aws_iam_role_policy" "pipeline" {
   policy = "${data.aws_iam_policy_document.pipeline.json}"
 }
 
+## codestar connection 사용함. 권한 필요함.
+data "aws_codestarconnections_connection" "selected" {
+  arn = "arn:aws:codestar-connections:ap-northeast-2:160270626841:connection/84283fa2-d4a1-4c74-a05f-6cebb9620101"
+}
+
 resource "aws_codepipeline" "this" {
-  name = "${var.service_name}-pipeline"
+  name = "${local.svc_nm}-ecs-pipeline"
   role_arn = "${aws_iam_role.pipeline.arn}"
 
   artifact_store {
-    location = "${var.service_name}-codepipeline-bucket"
+    location = "${local.svc_nm}-ecs-codepipeline-bucket"
     type = "S3"
   }
 
@@ -151,20 +167,38 @@ resource "aws_codepipeline" "this" {
     name = "Source"
 
     action {
-      name = "Source"
-      category = "Source"
-      owner = "ThirdParty"
-      provider = "GitHub"
-      version = "1"
+      name             = "Source"
+      category         = "Source"
+      owner            = "AWS"
+      provider         = "CodeStarSourceConnection"
+      version          = "1"
       output_artifacts = ["SourceArtifact"]
 
       configuration = {
-        OAuthToken = "${local.github_token}"
-        Owner = "${local.github_owner}"
-        Repo = "${local.github_repo}"
-        Branch = "${local.github_branch}"
+        #ConnectionArn        = var.codestar_connection_arn
+        ConnectionArn        = data.aws_codestarconnections_connection.selected.arn
+        #FullRepositoryId     = "${var.github_organization}/${var.github_repository}"
+        FullRepositoryId     = "largezero/HelloBigzeroWorldNode"
+        #BranchName           = var.github_branch
+        BranchName           = "main"
+        OutputArtifactFormat = "CODE_ZIP"
       }
     }
+    #action {
+    #  name = "Source"
+    #  category = "Source"
+    #  owner = "ThirdParty"
+    #  provider = "GitHub"
+    #  version = "1"
+    #  output_artifacts = ["SourceArtifact"]
+
+    #  configuration = {
+    #    OAuthToken = "${local.github_token}"
+    #    Owner = "${local.github_owner}"
+    #    Repo = "${local.github_repo}"
+    #    Branch = "${local.github_branch}"
+    #  }
+    #}
   }
 
   stage {
@@ -180,7 +214,7 @@ resource "aws_codepipeline" "this" {
       output_artifacts = ["BuildArtifact"]
 
       configuration = {
-        ProjectName = "${aws_codebuild_project.this.name}"
+        ProjectName = "${local.svc_nm}-ecs-codebuild"
       }
     }
   }
@@ -197,8 +231,8 @@ resource "aws_codepipeline" "this" {
       version = "1"
 
       configuration = {
-        ApplicationName = "${var.service_name}-service-deploy"
-        DeploymentGroupName = "${var.service_name}-service-deploy-group"
+        ApplicationName = "${local.svc_nm}-ecs-service-deploy"
+        DeploymentGroupName = "${local.svc_nm}-ecs-service-deploy-group"
         TaskDefinitionTemplateArtifact = "BuildArtifact"
         TaskDefinitionTemplatePath = "taskdef.json"
         AppSpecTemplateArtifact = "BuildArtifact"
