@@ -27,7 +27,8 @@ data "aws_vpc" "this" {
 }
 
 data "aws_ecs_task_definition" "this" {
-  task_definition = "${local.svc_nm}-ecs-task"
+  #task_definition = "${local.svc_nm}-ecs-task"
+  task_definition = "${local.svc_nm}-helloworld"
 }
 
 data "aws_ecs_cluster" "this" {

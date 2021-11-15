@@ -53,10 +53,10 @@ data "aws_iam_policy_document" "task_role" {
 
 data "aws_iam_policy_document" "codedeploy" {
   statement {
-    sid    = "AllowLoadBalancingAndECSModifications"
     effect = "Allow"
-
     actions = [
+      "ec2:CreateTags",
+      "ec2:RunInstances",
       "ecs:CreateTaskSet",
       "ecs:DeleteTaskSet",
       "ecs:DescribeServices",
@@ -73,7 +73,6 @@ data "aws_iam_policy_document" "codedeploy" {
       "s3:GetObjectMetadata",
       "s3:GetObjectVersion"
     ]
-
     resources = ["*"]
   }
 

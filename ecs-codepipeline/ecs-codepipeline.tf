@@ -72,58 +72,22 @@ resource "aws_iam_role" "pipeline" {
 
 data "aws_iam_policy_document" "pipeline" {
   statement {
-    sid = "AllowS3"
     effect = "Allow"
 
     actions = [
       "s3:GetObject",
       "s3:ListBucket",
       "s3:PutObject",
-    ]
-
-    resources = ["*"]
-  }
-
-  statement {
-    sid = "AllowECR"
-    effect = "Allow"
-
-    actions = ["ecr:DescribeImages"]
-    resources = ["*"]
-  }
-
-  statement {
-    sid = "AllowCodebuild"
-    effect = "Allow"
-
-    actions = [
+      "ecr:DescribeImages",
       "codebuild:BatchGetBuilds",
-      "codebuild:StartBuild"
-    ]
-    resources = ["*"]
-  }
-
-  statement {
-    sid = "AllowCodedepoloy"
-    effect = "Allow"
-
-    actions = [
+      "codebuild:StartBuild",
       "codedeploy:CreateDeployment",
       "codedeploy:GetApplication",
       "codedeploy:GetApplicationRevision",
       "codedeploy:GetDeployment",
       "codedeploy:GetDeploymentConfig",
-      "codedeploy:RegisterApplicationRevision"
-    ]
-    resources = ["*"]
-  }
-
-  statement {
-    sid = "AllowResources"
-    effect = "Allow"
-
-    actions = [
-      "codestar-connections:*",
+      "codedeploy:RegisterApplicationRevision",
+      "codestar-connections:UseConnection",
       "elasticbeanstalk:*",
       "ec2:*",
       "elasticloadbalancing:*",
@@ -232,6 +196,7 @@ resource "aws_codepipeline" "this" {
 
       configuration = {
         ApplicationName = "${local.svc_nm}-ecs-service-deploy"
+        #ApplicationName = "${local.svc_nm}-helloworld"
         DeploymentGroupName = "${local.svc_nm}-ecs-service-deploy-group"
         TaskDefinitionTemplateArtifact = "BuildArtifact"
         TaskDefinitionTemplatePath = "taskdef.json"

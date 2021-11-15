@@ -94,5 +94,8 @@ aws ec2 describe-images \
 * [reference](https://newbedev.com/got-permission-denied-while-trying-to-connect-to-the-docker-daemon-socket-at-unix-var-run-docker-sock-post-http-2fvar-2frun-2fdocker-sock-v1-24-auth-dial-unix-var-run-docker-sock-connect-permission-denied-code-exampl)
 
 ### 순서
-* vpc => ecr => ecs-codebuild(build run and push image to ecr) => ecs-cluster => ecs-task 
-      => lb-ecs => ecs-service => ecs-autoscale => ecs-codedeploy => ecs-codepipeline
+* vpc => ecr => ecs-autoscale => lb-ecs  
+      => ecs-cluster(autoscale의 instance 가 연결됨) => ecs-task(ecr 의 docker 가 연결됨) 
+      => ecs-service(lb 의 target_group 과 autoscale instance, ecs-task 가 연결됨)
+      => ecs-codebuild =>
+      => ecs-codedeploy => ecs-codepipeline(codestart 연결필요) => ecs-route53

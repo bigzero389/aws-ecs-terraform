@@ -127,19 +127,19 @@ data "aws_subnet_ids" "public" {
 }
 
 resource "aws_autoscaling_group" "this" {
-  name = "${local.svc_nm}-ecs-autoscaling-group"
+  name = "${local.svc_nm}-ecs-instance-service"
   max_size = 2
   min_size = 1
-  desired_capacity = 2
+  desired_capacity = 1
   #vpc_zone_identifier = data.aws_subnet.private.*.id
   vpc_zone_identifier = tolist(data.aws_subnet_ids.public.ids)
   launch_configuration = "${aws_launch_configuration.this.name}"
   health_check_type = "ELB"
 
   tag {
-    key                 = "Name"
+    key = "Name"
+    value = "${local.svc_nm}-ecs-autoscale-instance"
     #value               = "ECS-Instance-${local.svc_nm}-service"
-    value               = "${local.svc_nm}-ec2-ecs-instance-service"
     propagate_at_launch = true
   }
 }

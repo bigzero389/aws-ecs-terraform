@@ -28,7 +28,8 @@ data "aws_iam_role" "task_role" {
 }
 
 resource "aws_ecs_task_definition" "this" {
-  family                   = "${local.svc_nm}-ecs-task"
+  #family                   = "${local.svc_nm}-ecs-task"
+  family                   = "${local.svc_nm}-helloworld"
   execution_role_arn       = "${data.aws_iam_role.execution_role.arn}"
   task_role_arn            = "${data.aws_iam_role.task_role.arn}"
   network_mode             = "bridge"
@@ -64,4 +65,3 @@ DEFINITION
     Group = "${local.group}"
   }
 }
-#"image": "gnokoheat/ecs-nodejs-initial:latest",

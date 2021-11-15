@@ -183,33 +183,37 @@ resource "aws_lb_listener" "http" {
   protocol          = "HTTP"
 
   default_action {
-    type = "redirect"
-
-    redirect {
-      port        = "443"
-      protocol    = "HTTPS"
-      status_code = "HTTP_301"
-    }
+    target_group_arn = "${aws_lb_target_group.this.0.arn}"
+    type             = "forward"
   }
+  #default_action {
+  #  type = "redirect"
+
+  #  redirect {
+  #    port        = "443"
+  #    protocol    = "HTTPS"
+  #    status_code = "HTTP_301"
+  #  }
+  #}
 }
 
-data "aws_route53_zone" "histech_dot_net" {
-  name = "hist-tech.net."
-}
-
-
-resource "aws_route53_record" "this" {
-  zone_id = "${data.aws_route53_zone.histech_dot_net.zone_id}"
-  #name    = "dyheo-ecs.hist-tech.net"
-  name    = local.hosts_name
-  type    = "A"
-
-  alias {
-    name     = "${aws_lb.this.dns_name}"
-    zone_id  = "${aws_lb.this.zone_id}"
-    evaluate_target_health = true
-  }
-}
+#data "aws_route53_zone" "histech_dot_net" {
+#  name = "hist-tech.net."
+#}
+#
+#
+#resource "aws_route53_record" "this" {
+#  zone_id = "${data.aws_route53_zone.histech_dot_net.zone_id}"
+#  #name    = "dyheo-ecs.hist-tech.net"
+#  name    = local.hosts_name
+#  type    = "A"
+#
+#  alias {
+#    name     = "${aws_lb.this.dns_name}"
+#    zone_id  = "${aws_lb.this.zone_id}"
+#    evaluate_target_health = true
+#  }
+#}
 
 
 resource "aws_lb_listener_rule" "this" {
