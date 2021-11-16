@@ -28,7 +28,7 @@ data "aws_vpc" "this" {
 
 data "aws_ecs_task_definition" "this" {
   #task_definition = "${local.svc_nm}-ecs-task"
-  task_definition = "${local.svc_nm}-helloworld"
+  task_definition = "${local.svc_nm}"
 }
 
 data "aws_ecs_cluster" "this" {
@@ -71,7 +71,7 @@ resource "aws_ecs_service" "this" {
     #target_group_arn = "${data.aws_lb_target_group.this.0.arn}"
     #target_group_arn = "${data.aws_lb_target_group.selected.arn}"
     #container_name   = "${local.svc_nm}"
-    container_name   = "dy-helloworld"
+    container_name   = "dy"
     container_port   = "${local.container_port}"
   }
 

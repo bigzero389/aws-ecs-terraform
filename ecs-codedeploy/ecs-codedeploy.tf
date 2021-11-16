@@ -24,7 +24,7 @@ data "aws_iam_policy_document" "assume_by_codedeploy" {
 }
 
 resource "aws_iam_role" "codedeploy" {
-  name               = "${local.svc_nm}-ecs-service-codedeploy"
+  name               = "${local.svc_nm}_ecs-service-codedeploy"
   assume_role_policy = "${data.aws_iam_policy_document.assume_by_codedeploy.json}"
 }
 
@@ -53,6 +53,7 @@ data "aws_iam_policy_document" "task_role" {
 
 data "aws_iam_policy_document" "codedeploy" {
   statement {
+    sid   = "AllowLoadBalancingAndECSModifications"
     effect = "Allow"
     actions = [
       "ec2:CreateTags",
@@ -96,7 +97,7 @@ resource "aws_iam_role_policy" "codedeploy" {
 
 resource "aws_codedeploy_app" "this" {
   compute_platform = "ECS"
-  name             = "${local.svc_nm}-ecs-service-deploy"
+  name             = "${local.svc_nm}-ecs-service-codedeploy"
 }
 
 data "aws_ecs_service" "selected" {
@@ -111,6 +112,11 @@ data "aws_lb" "selected" {
 data "aws_lb_listener" "selected80" {
   load_balancer_arn = data.aws_lb.selected.arn
   port = 80
+}
+
+data "aws_lb_listener" "selectedTest" {
+  load_balancer_arn = data.aws_lb.selected.arn
+  port = 8888
 }
 
 data "aws_lb_target_group" "blue" {
@@ -154,6 +160,9 @@ resource "aws_codedeploy_deployment_group" "this" {
         listener_arns = ["${data.aws_lb_listener.selected80.arn}"]
       }
 
+      test_traffic_route {
+        listener_arns = ["${data.aws_lb_listener.selectedTest.arn}"]
+      }
       target_group {
         name = "${data.aws_lb_target_group.blue.name}"
       }

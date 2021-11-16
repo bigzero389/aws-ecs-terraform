@@ -66,7 +66,7 @@ data "aws_iam_policy_document" "assume_by_pipeline" {
 }
 
 resource "aws_iam_role" "pipeline" {
-  name = "${local.svc_nm}-pipeline-ecs-service-role"
+  name = "${local.svc_nm}_pipeline-ecs-service-role"
   assume_role_policy = "${data.aws_iam_policy_document.assume_by_pipeline.json}"
 }
 
@@ -195,7 +195,7 @@ resource "aws_codepipeline" "this" {
       version = "1"
 
       configuration = {
-        ApplicationName = "${local.svc_nm}-ecs-service-deploy"
+        ApplicationName = "${local.svc_nm}-ecs-service-codedeploy"
         #ApplicationName = "${local.svc_nm}-helloworld"
         DeploymentGroupName = "${local.svc_nm}-ecs-service-deploy-group"
         TaskDefinitionTemplateArtifact = "BuildArtifact"

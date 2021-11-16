@@ -29,7 +29,8 @@ data "aws_iam_role" "task_role" {
 
 resource "aws_ecs_task_definition" "this" {
   #family                   = "${local.svc_nm}-ecs-task"
-  family                   = "${local.svc_nm}-helloworld"
+  #family                   = "${local.svc_nm}-helloworld"
+  family                   = "${local.svc_nm}"
   execution_role_arn       = "${data.aws_iam_role.execution_role.arn}"
   task_role_arn            = "${data.aws_iam_role.task_role.arn}"
   network_mode             = "bridge"
@@ -54,8 +55,8 @@ resource "aws_ecs_task_definition" "this" {
         }
       ],
       "memoryReservation" : ${local.memory_reserv},
-      "image": "160270626841.dkr.ecr.ap-northeast-2.amazonaws.com/dy-helloworld:latest",
-      "name": "dy-helloworld"
+      "image": "160270626841.dkr.ecr.ap-northeast-2.amazonaws.com/${local.svc_nm}:latest",
+      "name": "${local.svc_nm}"
     }
 ]
 DEFINITION

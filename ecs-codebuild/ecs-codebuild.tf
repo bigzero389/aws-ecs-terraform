@@ -28,7 +28,7 @@ data "aws_iam_policy_document" "assume_by_codebuild" {
 }
 
 resource "aws_iam_role" "codebuild" {
-  name               = "${local.svc_nm}-codebuild"
+  name               = "${local.svc_nm}_codebuild"
   assume_role_policy = "${data.aws_iam_policy_document.assume_by_codebuild.json}"
 }
 
@@ -117,7 +117,7 @@ resource "aws_codebuild_project" "this" {
 
     environment_variable {
       name  = "IMAGE_REPO_NAME"
-      value = "${local.svc_nm}-helloworld"
+      value = "${local.svc_nm}"
     }
 
     environment_variable {

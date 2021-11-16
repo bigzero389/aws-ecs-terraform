@@ -113,50 +113,6 @@ resource "aws_iam_role_policy" "task_role" {
   policy = "${data.aws_iam_policy_document.task_role.json}"
 }
 
-resource "aws_security_group" "ecs" {
-  name   = "${local.svc_nm}-sg-ecs"
-  vpc_id = "${data.aws_vpc.this.id}"
-
-## All VPC Port Open
-#  ingress {
-#    from_port       = 0
-#    protocol        = "-1"
-#    to_port         = 0
-#    cidr_blocks = ["${data.aws_vpc.this.cidr_block}"]
-#    security_groups = ["${data.aws_security_group.sg-core.id}"]
-#  }
-
-## Core Security Group 포함.
-  ingress {
-    from_port       = 0
-    protocol        = "-1"
-    to_port         = 0
-    #cidr_blocks = ["${data.aws_vpc.this.cidr_block}"]
-    security_groups = ["${data.aws_security_group.sg-core.id}"]
-  }
-
-## VPC 내에 모든 포트를 연다. ecs 에서 자동으로 다른 포트를 트라이 한다.
-  ingress {
-    from_port       = 0
-    protocol        = "tcp"
-    to_port         = 65535
-    cidr_blocks = ["${data.aws_vpc.this.cidr_block}"]
-  }
-
-  egress {
-    from_port   = 0
-    protocol    = "-1"
-    to_port     = 0
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "${local.svc_nm}-sg-ecs",
-    Creator= "${local.creator}",
-    Group = "${local.group}"
-  }
-}
-
 resource "aws_ecs_cluster" "this" {
   name = "${local.svc_nm}-ecs-cluster"
   tags = {

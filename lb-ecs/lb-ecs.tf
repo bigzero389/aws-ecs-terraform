@@ -38,6 +38,22 @@ resource "aws_security_group" "sg-lb-ecs" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+## blue/green deploy 를 위한 test port 를 임의로 잡아서 열어야 한다.
+  ingress {
+    from_port       = 8888
+    protocol        = "tcp"
+    to_port         = 8888
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+## VPC 내에 모든 포트를 연다. ecs 에서 자동으로 다른 포트를 트라이 한다.
+  ingress {
+    from_port       = 0
+    protocol        = "tcp"
+    to_port         = 65535
+    cidr_blocks = ["${data.aws_vpc.this.cidr_block}"]
+  }
+
   egress {
     from_port   = 0
     protocol    = "-1"
@@ -177,6 +193,18 @@ resource "aws_lb_listener" "https" {
   }
 }
 
+resource "aws_lb_listener" "test" {
+  load_balancer_arn = "${aws_lb.this.arn}"
+  port              = "8888"
+  protocol          = "HTTP"
+  #certificate_arn   = "${data.aws_acm_certificate.histech_dot_net.arn}"
+
+  default_action {
+    target_group_arn = "${aws_lb_target_group.this.0.arn}"
+    type             = "forward"
+  }
+}
+
 resource "aws_lb_listener" "http" {
   load_balancer_arn = "${aws_lb.this.arn}"
   port              = "80"
@@ -196,25 +224,6 @@ resource "aws_lb_listener" "http" {
   #  }
   #}
 }
-
-#data "aws_route53_zone" "histech_dot_net" {
-#  name = "hist-tech.net."
-#}
-#
-#
-#resource "aws_route53_record" "this" {
-#  zone_id = "${data.aws_route53_zone.histech_dot_net.zone_id}"
-#  #name    = "dyheo-ecs.hist-tech.net"
-#  name    = local.hosts_name
-#  type    = "A"
-#
-#  alias {
-#    name     = "${aws_lb.this.dns_name}"
-#    zone_id  = "${aws_lb.this.zone_id}"
-#    evaluate_target_health = true
-#  }
-#}
-
 
 resource "aws_lb_listener_rule" "this" {
   count        = 2

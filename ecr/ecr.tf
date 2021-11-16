@@ -11,7 +11,7 @@ locals {
 }
 
 resource "aws_ecr_repository" "this" {
-  name                 = "${local.svc_nm}-helloworld"
+  name                 = "${local.svc_nm}"
   image_tag_mutability = "MUTABLE"
 
   image_scanning_configuration {
