@@ -17,12 +17,11 @@ data "aws_lb" "selected" {
 }
 
 data "aws_route53_zone" "histech_dot_net" {
-  name = "hist-tech.net."
+  name = "hist-tech.net"
 }
 
 resource "aws_route53_record" "this" {
   zone_id = "${data.aws_route53_zone.histech_dot_net.zone_id}"
-  #name    = "dyheo-ecs.hist-tech.net"
   name    = local.hosts_name
   type    = "A"
 
