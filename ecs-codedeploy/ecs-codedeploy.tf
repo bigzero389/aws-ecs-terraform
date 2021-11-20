@@ -111,7 +111,8 @@ data "aws_lb" "selected" {
 
 data "aws_lb_listener" "selected80" {
   load_balancer_arn = data.aws_lb.selected.arn
-  port = 80
+  #port = 80
+  port = 443
 }
 
 data "aws_lb_listener" "selectedTest" {
