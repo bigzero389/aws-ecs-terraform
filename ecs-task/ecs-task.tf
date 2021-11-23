@@ -17,7 +17,7 @@ locals {
   ## Docker Container Port
   container_port = 3000
   memory_reserv = 512
-  HELLOWORLD_VERSION = 1.0
+  HELLOWORLD_VERSION = "1.0"
 }
 
 data "aws_iam_role" "execution_role" {
@@ -43,7 +43,7 @@ resource "aws_ecs_task_definition" "this" {
         {
           "hostPort": 0,
           "protocol": "tcp",
-          "containerPort": "${local.container_port}"
+          "containerPort": ${local.container_port}
         }
       ],
       "environment": [
@@ -66,12 +66,13 @@ resource "aws_ecs_task_definition" "this" {
           "awslogs-stream-prefix": "dy-helloworld"
         }
       },
-      "memoryReservation" : "${local.memory_reserv}",
+      "memoryReservation" : ${local.memory_reserv},
       "image": "160270626841.dkr.ecr.ap-northeast-2.amazonaws.com/${local.svc_nm}:latest",
       "name": "${local.svc_nm}"
     }
 ]
 DEFINITION
+
   tags = {
     Name = "${local.svc_nm}-ecs-task",
     Creator= "${local.creator}",

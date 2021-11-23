@@ -82,7 +82,9 @@ data "aws_iam_policy_document" "task_role" {
     sid    = "AllowDescribeCluster"
     effect = "Allow"
 
-    actions = ["ecs:DescribeClusters"]
+    actions = [
+      "ecs:DescribeClusters"
+    ]
 
     resources = ["${aws_ecs_cluster.this.arn}"]
   }

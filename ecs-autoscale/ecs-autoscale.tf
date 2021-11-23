@@ -55,6 +55,30 @@ data "aws_iam_policy_document" "ecs-instance-policy" {
   }
 }
 
+resource "aws_iam_policy" "monitoring-policy" {
+  name = "AllowSendingDataForMonitoring"
+  description = "Sending Data for monitoring"
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "MonitoringPolicy",
+      "Effect": "Allow",
+      "Action": [
+        "logs:Create*",
+        "logs:Put*",
+        "logs:Describe*",
+        "cloudwatch:Put*",
+        "events:Put*"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+EOF
+}
+
 resource "aws_iam_role" "ecs-instance-role" {
   name = "${local.svc_nm}_ecs-instance-role"
   path = "/"
@@ -64,6 +88,11 @@ resource "aws_iam_role" "ecs-instance-role" {
 resource "aws_iam_role_policy_attachment" "ecs-instance-role-attachment" {
   role = "${aws_iam_role.ecs-instance-role.name}"
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
+}
+
+resource "aws_iam_role_policy_attachment" "monitoring-policy" {
+  role = "${aws_iam_role.ecs-instance-role.name}"
+  policy_arn = aws_iam_policy.monitoring-policy.arn
 }
 
 resource "aws_iam_instance_profile" "ecs-instance-profile" {
