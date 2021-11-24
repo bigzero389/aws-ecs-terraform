@@ -125,7 +125,7 @@ resource "aws_launch_configuration" "this" {
   iam_instance_profile = "${aws_iam_instance_profile.ecs-instance-profile.id}"
 
   root_block_device {
-    volume_type           = "gp2"
+    volume_type           = "gp3"
     volume_size           = 100
     delete_on_termination = true
   }
