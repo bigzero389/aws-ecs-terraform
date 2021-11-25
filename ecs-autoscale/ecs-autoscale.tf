@@ -46,11 +46,11 @@ data "aws_ami" "latest-ecs" {
 
 data "aws_iam_policy_document" "ecs-instance-policy" {
   statement {
-    actions = ["sts:AssumeRole"] ## 권한을 잠시 빌린다.  
+    actions = ["sts:AssumeRole"]
 
     principals {
       type = "Service"
-      identifiers = ["ec2.amazonaws.com"]
+      identifiers = ["ec2.amazonaws.com","events.amazonaws.com"]
     }
   }
 }
@@ -60,21 +60,33 @@ resource "aws_iam_policy" "monitoring-policy" {
   description = "Sending Data for monitoring"
   policy = <<EOF
 {
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "MonitoringPolicy",
-      "Effect": "Allow",
-      "Action": [
-        "logs:Create*",
-        "logs:Put*",
-        "logs:Describe*",
-        "cloudwatch:Put*",
-        "events:Put*"
-      ],
-      "Resource": "*"
-    }
-  ]
+   "Version": "2012-10-17",
+   "Statement": [
+      {
+         "Sid": "CloudWatchEventsFullAccess",
+         "Effect": "Allow",
+         "Action": "events:*",
+         "Resource": "*"
+      },
+      {
+         "Sid": "IAMPassRoleForCloudWatchEvents",
+         "Effect": "Allow",
+         "Action": "iam:PassRole",
+         "Resource": "arn:aws:iam::*:role/AWS_Events_Invoke_Targets"
+      },
+      {
+        "Sid": "MonitoringPolicy",
+        "Effect": "Allow",
+        "Action": [
+          "logs:Create*",
+          "logs:Put*",
+          "logs:Describe*",
+          "cloudwatch:Put*",
+          "events:Put*"
+        ],
+        "Resource": "*"
+     }
+   ]
 }
 EOF
 }
