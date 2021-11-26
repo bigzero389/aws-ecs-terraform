@@ -50,7 +50,7 @@ data "aws_iam_policy_document" "ecs-instance-policy" {
 
     principals {
       type = "Service"
-      identifiers = ["ec2.amazonaws.com","events.amazonaws.com"]
+      identifiers = ["ec2.amazonaws.com","events.amazonaws.com","firehose.amazonaws.com"]
     }
   }
 }
@@ -85,8 +85,29 @@ resource "aws_iam_policy" "monitoring-policy" {
           "events:Put*"
         ],
         "Resource": "*"
-     }
-   ]
+      },
+      {
+        "Effect": "Allow",
+        "Action": [
+          "firehose:DeleteDeliveryStream",
+          "firehose:PutRecord",
+          "firehose:PutRecordBatch",
+          "firehose:UpdateDestination"
+        ],
+        "Resource": [
+          "arn:aws:firehose:ap-northeast-2:160270626841:deliverystream/dy-kinesis-firehose-es"
+        ]
+      },
+      {
+        "Effect": "Allow",
+        "Action": [
+          "es:*"
+        ],
+        "Resource": [
+          "arn:aws:es:ap-northeast-2:160270626841:domain/dy-search-domain"
+        ]
+      }
+  ]
 }
 EOF
 }
@@ -94,7 +115,7 @@ EOF
 resource "aws_iam_role" "ecs-instance-role" {
   name = "${local.svc_nm}_ecs-instance-role"
   path = "/"
-  assume_role_policy = "${data.aws_iam_policy_document.ecs-instance-policy.json}"
+  assume_role_policy = data.aws_iam_policy_document.ecs-instance-policy.json
 }
 
 resource "aws_iam_role_policy_attachment" "ecs-instance-role-attachment" {
@@ -156,6 +177,9 @@ resource "aws_launch_configuration" "this" {
 #!/bin/bash
 # ECS Cluster 와 이름이 같아야 한다.
 echo ECS_CLUSTER=${local.svc_nm}-ecs-cluster>> /etc/ecs/ecs.config
+sudo yum install git bash-completion -y
+source /usr/share/bash-completion/bash_completion
+type _init_completion
 #sudo yum update -y ## too long time
 EOF
 }
