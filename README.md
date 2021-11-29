@@ -26,14 +26,18 @@ terraform destroy [--auto-approve]
 * destroy 하면 VPC 가 전체 삭제된다. 이때 vpc terraform 으로 만들어지지 않은 다른 자원들이 종속되어 있으면 삭제가 안된다.
  
 ## Terraform Script 실행 순서
-* vpc => ecs-lb  
-  => ecs-cluster(autoscale의 instance 가 연결됨) => ecs-autoscale  
-  => ecr => ecs-task(ecr 의 docker 가 연결됨)   
+* vpc  
+  => ecs-lb  
+  => ecs-cluster(autoscale의 instance 가 연결됨)  
+  => ecs-autoscale    
+  => ecr  
+  => ecs-task(ecr 의 docker 가 연결됨)   
   => ecs-service(lb 의 target_group 과 autoscale instance, ecs-task 가 연결됨)  
   => ecs-codebuild  
   => ecs-codedeploy  
   => ecs-codepipeline(codestart 연결필요)   
   => ecs-route53
+  => ecs-search(options)
 
 ### ecs-lb
 * 리스너 등록시 blue/green 배포이므로 primary 와 secondary 두개를 동시에 등록하지 말것, blue/green 에서 임의로 변경함.
